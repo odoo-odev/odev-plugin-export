@@ -85,10 +85,10 @@ class ExportCommand(DatabaseCommand):
                     f"Path {self.args.path.as_posix()} already exist and doesn't seem to be an Odoo module path"
                 )
 
-            if len(list(self.args.path.iterdir())) and logger.confirm(
-                f"The folder {self.args.path} already exist do you want to delete first ?"
+            if len(list(self.args.path.iterdir())) and self.console.confirm(
+                f"The folder {self.args.path} already exists, do you want to remove it first?"
             ):
-                logger.warning(f"Existing folder '{self.args.path}' successfully deleted")
+                logger.warning(f"Existing folder {self.args.path} successfully removed")
                 shutil.rmtree(self.args.path)
 
         if not self.args.path.exists():
@@ -138,6 +138,9 @@ class ExportCommand(DatabaseCommand):
         """Generate the __init__.py files for the export module."""
 
         init_file = Path(self.args.path / module / folder / "__init__.py")
+
+        if not init_file.parent.exists():
+            init_file.parent.mkdir(parents=True, exist_ok=True)
 
         with open(init_file, "w") as f:
             for file_name in imports:
