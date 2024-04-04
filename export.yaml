@@ -1,0 +1,205 @@
+sh:
+    base.action.rule:
+        format: xml
+        sub_folder: data
+        file_name_field: action_rule
+        fields: [name, model_id, domain_force, perm_read, perm_write, perm_create, perm_unlink]
+
+    ir.actions.act_url:
+        format: xml
+        sub_folder: data
+        file_name_field: act_url
+        fields: [name, url, target, type]
+
+    ir.actions.act_window:
+        format: xml
+        sub_folder: views
+        file_name_field: model
+        fields: [name, res_model, view_mode, view_id, domain, context, help, type]
+
+    ir.actions.act_window.view:
+        format: xml
+        sub_folder: data
+        file_name_field: act_window_view
+        fields: [view_id, act_window_id, sequence, view_mode]
+
+    ir.actions.report:
+        format: xml
+        sub_folder: data
+        file_name_field: report
+        fields: [name, model, report_type, report_name, report_file, paperformat_id, binding_model_id]
+
+    ir.actions.report.xml:
+        format: xml
+        sub_folder: data
+        file_name_field: report_xml
+        fields: [name, model, report_name, report_file, paperformat_id]
+
+    ir.filters:
+        format: xml
+        sub_folder: data
+        file_name_field: filter
+        fields: [name, model_id, context, domain, sort, user_id]
+
+    ir.model.access:
+        format: csv
+        sub_folder: security
+        file_name_field: ir.model.access
+        fields: [id, name, model_id, group_id, perm_read, perm_write, perm_create, perm_unlink]
+
+    ir.model.fields.selection: &imfs
+        export: false
+        order: "sequence"
+        fields: [display_name, value, field_id]
+
+    ir.model.fields: &imf
+        export: false
+        format: py
+        domain:
+            "[('state', '!=', 'base'), ('name', 'not in', ['id', '__last_update', 'create_uid', 'create_date',
+            'write_uid', 'write_date'])]"
+        order: "ttype, name"
+        sub_folder: models
+        file_name_field: model
+        fields:
+            [
+                name,
+                ttype,
+                model_id,
+                complete_name,
+                relation,
+                required,
+                index,
+                copied,
+                translate,
+                depends,
+                related,
+                compute,
+                depends,
+                relation_field,
+                field_description,
+                store,
+                readonly,
+                model,
+                selection_ids,
+            ]
+        includes:
+            ir.model.fields.selection:
+                <<: *imfs
+                comodel_name: ir.model.fields.selection
+                inverse_name: field_id
+                field: id
+
+    ir.model: &im
+        format: py
+        sub_folder: models
+        file_name_field: model
+        includes:
+            ir.model.fields:
+                <<: *imf
+                comodel_name: ir.model.fields
+                inverse_name: model_id
+                field: id
+        fields: [id, model, name, state, info]
+
+    ir.actions.server: &ias
+        format: xml
+        sub_folder: data
+        file_name_field: ir.model-0-model
+        fields:
+            [
+                name,
+                model_id,
+                state,
+                type,
+                code,
+                model_name,
+                state,
+                usage,
+                model_id,
+                model_name,
+                binding_model_id,
+                groups_id,
+            ]
+        includes:
+            ir.model:
+                <<: *im
+                comodel_name: ir.model
+                inverse_name: id
+                field: model_id
+
+    base.automation:
+        format: xml
+        sub_folder: data
+        file_name_field: ir.model-0-model
+        fields: [name, model_id, active, trigger, on_change_field_ids, filter_domain, state, website_published, code]
+        includes:
+            ir.model:
+                <<: *im
+                comodel_name: ir.model
+                inverse_name: id
+                field: model_id
+
+    ir.cron:
+        format: xml
+        sub_folder: data
+        file_name_field: ir.model-0-model
+        domain: "[('active', '=', False)]"
+        fields:
+            [
+                cron_name,
+                interval_number,
+                model_id,
+                user_id,
+                interval_type,
+                interval_number,
+                nextcall,
+                priority,
+                numbercall,
+                doall,
+                active,
+                code,
+            ]
+        includes:
+            ir.model:
+                <<: *im
+                comodel_name: ir.model
+                inverse_name: id
+                field: model_id
+
+    ir.module.category:
+        format: xml
+        sub_folder: data
+        file_name_field: module_category
+        fields: [name, description]
+
+    ir.rule:
+        format: xml
+        sub_folder: security
+        file_name_field: ir.rule
+        fields: [name, model_id, domain_force, perm_read, perm_write, perm_create, perm_unlink]
+
+    ir.ui.menu:
+        format: xml
+        sub_folder: data
+        file_name_field: menus
+        fields: [name, parent_id, action, sequence, web_icon, web_icon_data]
+
+    ir.ui.view:
+        format: xml
+        sub_folder: views
+        file_name_field: model
+        fields: [name, model, inherit_id, mode, arch]
+
+    res.groups: &rg
+        format: xml
+        sub_folder: security
+        file_name_field: res_groups
+        fields: [name, display_name, comment, category_id, implied_ids, category_id, users]
+
+saas:
+    ir.model:
+        format: xml
+    ir.model.fields:
+        export: true
+        format: xml
