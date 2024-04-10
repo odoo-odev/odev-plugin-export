@@ -29,6 +29,6 @@ class ConverterFactory(ConverterBase):
             case _:
                 raise ValueError("Unsupported data type")
 
-        return converter_cls(self.version, self.prettify, self.xml_ids).convert(
+        return converter_cls(self.version, self.prettify, self.xml_ids, self.migrate_code).convert(
             data, fields_get, default_get, model, module, config
         )

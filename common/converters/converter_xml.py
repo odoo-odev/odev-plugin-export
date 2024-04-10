@@ -16,7 +16,7 @@ from lxml import etree
 
 from odev.common.connectors.rpc import FieldsGetMapping, RecordData
 
-from odev.plugins.ps_tech_odev_export.utils.odoo import DEFAULT_MODULE_LIST, get_xml_ids
+from odev.plugins.ps_tech_odev_export.common.odoo import DEFAULT_MODULE_LIST, get_xml_ids
 
 from .converter_base import ConverterBase
 
@@ -28,6 +28,24 @@ RPC_FIELDS_CACHE: MutableMapping[str, FieldsGetMapping] = {}
 
 
 class ConverterXml(ConverterBase):
+    fields_to_rename = [
+        "module",
+        "name",
+        "model_name",
+        "model",
+        "model_id",
+        "res_model",
+        "report_name",
+        "filter_domain",
+        "domain",
+        "code",
+        "sort",
+        "context",
+        "domain_force",
+        "arch",
+        "xml_id",
+    ]
+
     def __convert_xml_many2one(
         self,
         node: etree._Element,
@@ -44,6 +62,7 @@ class ConverterXml(ConverterBase):
         else:
             field = cast(str, node.get("name"))
             record_metadata = get_xml_ids(self.xml_ids, fields_get[field]["relation"], [value])
+            self._rename_fields(record_metadata[value])
             node.set("ref", record_metadata[value]["xml_id"])
 
     def __convert_xml_x2many(self, node: etree._Element, fields_get: FieldsGetMapping, value: List[int]) -> None:
@@ -54,9 +73,10 @@ class ConverterXml(ConverterBase):
         """
         field = cast(str, node.get("name"))
         linked_record_metadata = get_xml_ids(self.xml_ids, fields_get[field]["relation"], value)
+        self._rename_fields(linked_record_metadata)
 
-        def _link_command(__metadata: RecordMetaData):
-            linked_record_ref = f"ref('{__metadata['xml_id']}')"
+        def _link_command(metadata: RecordMetaData):
+            linked_record_ref = f"ref('{metadata['xml_id']}')"
             return f"Command.link({linked_record_ref})" if self.version.major >= 14 else f"(4, {linked_record_ref})"
 
         commands = ", ".join(_link_command(metadata) for metadata in linked_record_metadata.values())
@@ -107,6 +127,15 @@ class ConverterXml(ConverterBase):
 
         for record in records:
             record_metadata = record_metadatas[record["id"]]
+            self._rename_fields(record_metadata)
+
+            if self.migrate_code:
+                self._rename_fields(record)
+
+                for inc_model in config.get("includes", []):
+                    if inc_model in record:
+                        self._rename_fields(record[inc_model])
+
             root = etree.Element("odoo")
             if record_metadata["noupdate"]:
                 _root = root

@@ -20,7 +20,7 @@ from odev.common.version import OdooVersion
 
 from odev.plugins.ps_tech_odev_export.common.converters.converter_factory import ConverterFactory
 from odev.plugins.ps_tech_odev_export.common.merge.merge_factory import MergeFactory
-from odev.plugins.ps_tech_odev_export.utils.odoo import DEFAULT_MODULE_LIST, get_xml_ids
+from odev.plugins.ps_tech_odev_export.common.odoo import DEFAULT_MODULE_LIST, get_xml_ids
 
 
 logger = logging.getLogger(__name__)
@@ -62,6 +62,11 @@ class ExportCommand(DatabaseCommand):
         description="Create an importable module.",
         default=False,
     )
+    no_migrate_code = args.Flag(
+        aliases=["-M"],
+        description="Do not migrate the manual / studio fields into python fields.",
+        default=False,
+    )
     path = args.Path(
         aliases=["--path"],
         description="Path to the export template.",
@@ -85,10 +90,10 @@ class ExportCommand(DatabaseCommand):
                     f"Path {self.args.path.as_posix()} already exist and doesn't seem to be an Odoo module path"
                 )
 
-            if len(list(self.args.path.iterdir())) and self.console.confirm(
-                f"The folder {self.args.path} already exists, do you want to remove it first?"
+            if len(list(self.args.path.iterdir())) and logger.confirm(
+                f"The folder {self.args.path} already exist do you want to delete first ?"
             ):
-                logger.warning(f"Existing folder {self.args.path} successfully removed")
+                logger.warning(f"Existing folder '{self.args.path}' successfully deleted")
                 shutil.rmtree(self.args.path)
 
         if not self.args.path.exists():
@@ -97,7 +102,6 @@ class ExportCommand(DatabaseCommand):
         self.args.modules = list(set(self.args.modules + DEFAULT_MODULE_LIST))
 
         if any([self.args.model, self.args.domain, self.args.fields]):
-            # Standard export based on config given as arguments
             self.export_config = {
                 self.args.model: {"domain": self.args.domain, "fields": self.args.fields, "format": self.args.format}
             }
@@ -107,9 +111,16 @@ class ExportCommand(DatabaseCommand):
     def run(self):
         self.xml_ids, ids_to_export = self.__load_xml_ids(self.export_config.keys())
 
-        self.converter = ConverterFactory(version=OdooVersion(self.args.version), xml_ids=self.xml_ids)
+        self.converter = ConverterFactory(
+            version=OdooVersion(self.args.version), xml_ids=self.xml_ids, migrate_code=not self.args.no_migrate_code
+        )
         # TODO: Add prettify argument as before
-        self.merge = MergeFactory(version=OdooVersion(self.args.version), path=self.args.path, prettify=True)
+        self.merge = MergeFactory(
+            version=OdooVersion(self.args.version),
+            path=self.args.path,
+            prettify=True,
+            migrate_code=not self.args.no_migrate_code,
+        )
 
         for module, data in ids_to_export.items():
             logger.info(f"Exporting '{module}' module to {Path(self.args.path / module)}")
@@ -119,34 +130,29 @@ class ExportCommand(DatabaseCommand):
                     continue
 
                 if ids := data.get(model, []):
-
                     self.export(module, model, ids)
 
-            init_folder = []
-
-            if not self.args.importable:
-                init_folder = ["models", "controllers"]
-
-                python_models = [f.name for f in Path(self.args.path / module / "models").glob("*.py")]
-                self.__generate_init_file(module, "models", python_models)
-
-            self.__generate_init_file(module, ".", init_folder)
-
+            self.__generate_init_files(module)
             self.__generate_manifest(module)
+            self.__generate_mig_script(module, ids_to_export)
 
-    def __generate_init_file(self, module: str, folder: str, imports: List[str] = None):
-        """Generate the __init__.py files for the export module."""
+    def __generate_init_files(self, module: str):
+        """Generate the __init__.py files for the exported module."""
 
-        init_file = Path(self.args.path / module / folder / "__init__.py")
+        def generate_init_file(module: str, folder: str, imports: List[str] = None):
+            init_file = Path(self.args.path / module / folder / "__init__.py")
 
-        if not init_file.parent.exists():
-            init_file.parent.mkdir(parents=True, exist_ok=True)
+            with init_file.open("w") as f:
+                for file_name in imports:
+                    if Path(self.args.path / module / folder / f"{file_name}").exists():
+                        file_name = file_name.replace(".py", "")
+                        f.write(f"from . import {file_name}\n")
 
-        with open(init_file, "w") as f:
-            for file_name in imports:
-                if Path(self.args.path / module / folder / f"{file_name}").exists():
-                    file_name = file_name.replace(".py", "")
-                    f.write(f"from . import {file_name}\n")
+        init_folder = [] if self.args.importable else ["models", "controllers"]
+        generate_init_file(module, ".", init_folder)
+
+        python_models = [f.name for f in Path(self.args.path / module / "models").glob("*.py")]
+        generate_init_file(module, "models", python_models)
 
     def __generate_manifest(self, module: str):
         """Generate the __manifest__.py file for the export module."""
@@ -162,6 +168,18 @@ class ExportCommand(DatabaseCommand):
 
         with open(manifest_file, "w") as f:
             f.write(black.format_str(str(manifest), mode=black.FileMode(line_length=120)))
+
+    def __generate_mig_script(self, module: str, ids_to_export: Dict[str, Dict[str, List[int]]]):
+        """https://github.com/odoo-ps/ps-tech-odev/blob/main/odev/templates/default/sh/scaffold_pre-10.jinja"""
+        # @TODO : Implement the generation of the migration script
+        # imports = {"odoo.upgrade": ["util"]}
+        # [m.name for m in ids_to_export[module]["ir.model"]]
+        # [f.name for f in ids_to_export[module]["ir.model.fields"]]
+        # mig_script: str = self.converter.generate_migration_script(imports, models, fields)
+
+        # with open(Path(self.args.path, "migrations", "0.0.0", "pre-10.py"), "w") as f:
+        #     f.write(mig_script)
+        return ""
 
     def __load_config(self):
         """Load the config file and override config for importable module if needed
@@ -305,7 +323,7 @@ class ExportCommand(DatabaseCommand):
         default_get = self._database.models[model].default_get(list(fields_get.keys()))
 
         tracker = progress.Progress()
-        task = tracker.add_task(f"Exporting '{len(records)} {model}' records", total=len(records))
+        task = tracker.add_task(f"Exporting {len(records)} {model} records", total=len(records))
         tracker.start()
 
         for record, code in self.converter.convert(records, fields_get, default_get, model, module, config):

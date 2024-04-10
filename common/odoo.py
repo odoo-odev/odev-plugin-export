@@ -1,10 +1,12 @@
+import keyword
+import re
 from typing import Any
 
 
 DEFAULT_MODULE_LIST = ["__export_module__", "studio_customization"]
 
 
-def get_xml_ids(xml_ids, model: str = "", ids: list = None) -> dict[Any, dict[str, object]]:
+def get_xml_ids(xml_ids, model: str = "", ids: list = None, rename_field: bool = False) -> dict[Any, dict[str, object]]:
     model_clean = model.replace(".", "_")
 
     default = {
@@ -24,3 +26,13 @@ def get_xml_ids(xml_ids, model: str = "", ids: list = None) -> dict[Any, dict[st
             default[xml_id["res_id"]].update(xml_id)
             default[xml_id["res_id"]]["xml_id"] = f"{xml_id['module']}.{xml_id['name']}"
     return default
+
+
+def rename_field_base(field_name: str) -> str:
+    if type(field_name) == str:
+        field_name = re.sub(r"(?<=['\W_\s])x_(studio_)?|^x_(studio_)?", r"", field_name)
+
+        if field_name in keyword.kwlist:
+            field_name = f"_{field_name}"
+
+    return field_name

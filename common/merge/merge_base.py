@@ -11,16 +11,19 @@ logger = logging.getLogger(__name__)
 
 
 class MergeBase(ABC):
-
     version: OdooVersion = None
     prettify: bool = False
     xml_ids: list[dict] = None
+    migrate_code: bool = True
 
-    def __init__(self, version: OdooVersion = None, path: Path = None, prettify: bool = False) -> None:
+    def __init__(
+        self, version: OdooVersion = None, path: Path = None, prettify: bool = False, migrate_code: bool = True
+    ) -> None:
         """Initialize the Merger configuration."""
         self.version: OdooVersion = version
         self.prettify = prettify
         self.path = Path(os.getcwd() if not path else path)
+        self.migrate_code = migrate_code
 
         if not self.path.exists():
             self.path.mkdir(parents=True)
