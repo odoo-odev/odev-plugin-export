@@ -125,16 +125,11 @@ class ConverterXml(ConverterBase):
 
         root = etree.Element("odoo")
 
+        self._rename_fields(records, config)
+
         for record in records:
             record_metadata = record_metadatas[record["id"]]
             self._rename_fields(record_metadata)
-
-            if self.migrate_code:
-                self._rename_fields(record)
-
-                for inc_model in config.get("includes", []):
-                    if inc_model in record:
-                        self._rename_fields(record[inc_model])
 
             root = etree.Element("odoo")
             if record_metadata["noupdate"]:

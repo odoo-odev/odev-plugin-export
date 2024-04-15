@@ -1,12 +1,19 @@
 """Export data from a database."""
 
 import ast
+import copy
 import os
 import shutil
 from collections import defaultdict
 from itertools import chain
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import (
+    Any,
+    Dict,
+    List,
+    Optional,
+    Union,
+)
 
 import black
 import yaml
@@ -19,6 +26,7 @@ from odev.common.odoobin import OdoobinProcess
 from odev.common.version import OdooVersion
 
 from odev.plugins.ps_tech_odev_export.common.converters.converter_factory import ConverterFactory
+from odev.plugins.ps_tech_odev_export.common.converters.converter_python import ConverterPython
 from odev.plugins.ps_tech_odev_export.common.merge.merge_factory import MergeFactory
 from odev.plugins.ps_tech_odev_export.common.odoo import DEFAULT_MODULE_LIST, get_xml_ids
 
@@ -114,6 +122,11 @@ class ExportCommand(DatabaseCommand):
         self.converter = ConverterFactory(
             version=OdooVersion(self.args.version), xml_ids=self.xml_ids, migrate_code=not self.args.no_migrate_code
         )
+
+        self.converter_py = ConverterPython(
+            version=OdooVersion(self.args.version), xml_ids=self.xml_ids, migrate_code=not self.args.no_migrate_code
+        )
+
         # TODO: Add prettify argument as before
         self.merge = MergeFactory(
             version=OdooVersion(self.args.version),
@@ -134,7 +147,6 @@ class ExportCommand(DatabaseCommand):
 
             self.__generate_init_files(module)
             self.__generate_manifest(module)
-            self.__generate_mig_script(module, ids_to_export)
 
     def __generate_init_files(self, module: str):
         """Generate the __init__.py files for the exported module."""
@@ -169,17 +181,18 @@ class ExportCommand(DatabaseCommand):
         with open(manifest_file, "w") as f:
             f.write(black.format_str(str(manifest), mode=black.FileMode(line_length=120)))
 
-    def __generate_mig_script(self, module: str, ids_to_export: Dict[str, Dict[str, List[int]]]):
+    def __generate_mig_script(self, module: str, records: list[dict[str, Any]], config: dict[str, Any]):
         """https://github.com/odoo-ps/ps-tech-odev/blob/main/odev/templates/default/sh/scaffold_pre-10.jinja"""
-        # @TODO : Implement the generation of the migration script
-        # imports = {"odoo.upgrade": ["util"]}
-        # [m.name for m in ids_to_export[module]["ir.model"]]
-        # [f.name for f in ids_to_export[module]["ir.model.fields"]]
-        # mig_script: str = self.converter.generate_migration_script(imports, models, fields)
 
-        # with open(Path(self.args.path, "migrations", "0.0.0", "pre-10.py"), "w") as f:
-        #     f.write(mig_script)
-        return ""
+        imports = {"odoo": ["SUPERUSER_ID", "api"], "odoo.upgrade": ["util"], "logging": [], "os": []}
+
+        mig_script: str = self.converter_py.export_mig_script(imports, records, config)
+        mig_script_path = Path(self.args.path, module, "migrations", "0.0.0")
+
+        mig_script_path.mkdir(parents=True, exist_ok=True)
+
+        with Path(mig_script_path, "pre-10.py").open("w") as f:
+            f.write(mig_script)
 
     def __load_config(self):
         """Load the config file and override config for importable module if needed
@@ -315,6 +328,7 @@ class ExportCommand(DatabaseCommand):
         """
         config = self.export_config[model]
         records = self.__get_records(module, model, ids)
+        _records = copy.deepcopy(records)
 
         if not records:
             return
@@ -336,5 +350,9 @@ class ExportCommand(DatabaseCommand):
             tracker.update(task, advance=1)
 
         tracker.stop()
+
+        if model == "ir.model":
+            logger.info("Export mig script")
+            self.__generate_mig_script(module, _records, config)
 
         logger.info(f"Exported {len(records)} {model} records")

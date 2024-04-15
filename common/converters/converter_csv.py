@@ -25,10 +25,10 @@ class ConverterCsv(ConverterBase):
         writer = csv.writer(output)
         writer.writerow(config["fields"])
 
+        self._rename_fields(records, config)
+
         for record in records:
             items = []
-            self._rename_fields(record)
-
             for field in config["fields"]:
                 if relation := fields_get[field].get("relation"):
                     record_metadata = get_xml_ids(self.xml_ids, relation, [record[field]])

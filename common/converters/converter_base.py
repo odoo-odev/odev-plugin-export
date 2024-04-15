@@ -39,7 +39,7 @@ class ConverterBase(ABC):
     ) -> Generator[tuple[dict[Any, Any], Union[str, tuple[str, Any, str, str]]], None, None]:
         raise NotImplementedError("convert method must be implemented in subclass")
 
-    def _rename_fields(self, records: Union[list[dict[str, Any]], dict[str, Any]]):
+    def _rename_fields(self, records: Union[list[dict[str, Any]], dict[str, Any]], config: dict[str, Any] = None):
         if self.migrate_code:
             if isinstance(records, dict):
                 records = [records]
@@ -48,3 +48,8 @@ class ConverterBase(ABC):
                 for field in self.fields_to_rename:
                     if field in record.keys() and record[field]:
                         record[field] = rename_field_base(record[field])
+
+                    if config:
+                        for inc_model in config.get("includes", []):
+                            if inc_model in record:
+                                self._rename_fields(record[inc_model])

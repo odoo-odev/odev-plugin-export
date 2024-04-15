@@ -1,4 +1,5 @@
 import ast
+import copy
 import re
 from typing import (
     Any,
@@ -23,13 +24,13 @@ class ConverterPython(ConverterBase):
 
     def convert(
         self,
-        records: list[dict],
+        records: List[dict],
         fields_get: FieldsGetMapping,
         default_get: FieldsGetMapping,
         model: str,
         module: str,
         config: dict,
-        imports: dict[str, list] = None,
+        imports: dict[str, List] = None,
     ) -> Generator[Tuple[dict[Any, Any], tuple[str, Any, str, str]], None, None]:
         """Serialize the current model to readable python code.
         :return: The python code representation of the current model
@@ -41,17 +42,12 @@ class ConverterPython(ConverterBase):
                 raise NotImplementedError(f"Model {model} is not supported by the Python converter.")
 
     def export_class(
-        self, records: list[dict[str, Any]], config: dict[str, Any], imports: dict[str, list] = None
+        self, records: List[dict[str, Any]], config: dict[str, Any], imports: dict[str, List] = None
     ) -> Generator[Tuple[dict[Any, Any], tuple[str, Any, str, str]], None, None]:
 
+        self._rename_fields(records, config)
+
         for record in records:
-            if self.migrate_code:
-                self._rename_fields([record])
-
-                for inc_model in config.get("includes", []):
-                    if inc_model in record:
-                        self._rename_fields(record[inc_model])
-
             class_imports = self._prettify(self.generate_imports({"odoo": ["models", "fields", "api"]}))
             class_def = self.generate_class_definition(record)
             class_def = self._prettify(class_def)
@@ -61,17 +57,28 @@ class ConverterPython(ConverterBase):
             yield (record, (class_imports, class_def, fields, computes))
 
     def export_mig_script(
-        self, imports: dict[str, list[str]] = None, models: list[str] = None, fields: list[str] = None
+        self, imports: dict[str, List[str]] = None, models: List[dict[str, Any]] = None, config: dict[str, Any] = None
     ) -> str:
         code_import = self._prettify(self.generate_imports(imports))
-        code_method = self._prettify(self.generate_migration_script(models, fields), indent_level=4)
 
-        return f"{code_import}\n\n{code_method}"
+        _models = copy.deepcopy(models)
+        self._rename_fields(_models, config)
 
-    def generate_migration_script(self, models: list[str], fields: list[str]) -> str:
-        # mig_script = self.__generate_method(migrate)
-        # return astunparse.unparse(mig_script)
-        return ""
+        mapped_models: List[tuple[str, str]] = []
+        mapped_fields: List[tuple[str, str, str]] = []
+
+        for old_model, new_model in zip(models, _models):
+            if old_model["model"] != new_model["model"]:
+                mapped_models.append((old_model["model"], new_model["model"]))
+
+            for index, field in enumerate(old_model.get("ir.model.fields", [])):
+                new_field = new_model.get("ir.model.fields", [])[index]
+                if field["name"] != new_field.get("name"):
+                    mapped_fields.append((old_model["model"], field["name"], new_field.get("name")))
+
+        _method = self._prettify(self.generate_migration_script(mapped_models, mapped_fields), indent_level=0)
+
+        return f"{code_import}\n\n{_method}" if mapped_models or mapped_fields else ""
 
     def export_init(self, imports: dict[Any, Any]) -> str:
         return self._prettify(self.generate_imports(imports))
@@ -84,16 +91,19 @@ class ConverterPython(ConverterBase):
 
         return indent(formated_text, indent_level)
 
-    def generate_imports(self, imports: dict[str, list[str]]):
-        _imports = []
+    def generate_imports(self, imports: dict[str, List[str]]):
+        _imports: List[Union[ast.Import, ast.ImportFrom]] = []
         for module, names in imports.items():
-            _imports.append(
-                ast.ImportFrom(
-                    module=module,
-                    names=[ast.alias(name=name, asname=None) for name in names],
-                    level=0,
+            if names:
+                _imports.append(
+                    ast.ImportFrom(
+                        module=module,
+                        names=[ast.alias(name=name, asname=None) for name in names],
+                        level=0,
+                    )
                 )
-            )
+            else:
+                _imports.append(ast.Import(names=[ast.alias(name=module, asname=None)]))
 
         return astunparse.unparse(_imports)
 
@@ -227,7 +237,7 @@ class ConverterPython(ConverterBase):
                         targets=[ast.Name(id=f"record.{field_data['name']}", ctx=ast.Store())],
                         value=ast.Constant(value=False, kind=None),
                     )
-                    body = self.__generate_for_loop(assignation)
+                    body = self.__generate_for_loop(body=assignation)
 
                 _computes.append(
                     self.__generate_method(
@@ -239,7 +249,7 @@ class ConverterPython(ConverterBase):
                 )
 
                 if field_data.get("relation_field"):
-                    body = self.__generate_for_loop(ast.Pass())
+                    body = self.__generate_for_loop(body=ast.Pass())
                     _computes.append(self.__generate_method(f"_inverse_{field_data['name']}", body))
 
         return astunparse.unparse(_computes) or ""
@@ -247,15 +257,16 @@ class ConverterPython(ConverterBase):
     def __generate_method(
         self,
         method_name: str,
-        code: Union[ast.For, ast.Module],  # type: ignore
+        code: Union[ast.For, ast.Module, List[ast.Assign]],  # type: ignore
         decorator_name: str = "",
         decorator_list: List[str] = None,
+        args: List[str] = None,
     ) -> ast.FunctionDef:
         return ast.FunctionDef(
             name=method_name,
             lineno=0,
             args=ast.arguments(
-                args=[ast.arg(arg="self", annotation=None)],
+                args=[ast.arg(arg=args_name, annotation=None) for args_name in args or ["self"]],
                 posonlyargs=[],
                 vararg=None,
                 kwonlyargs=[],
@@ -269,20 +280,185 @@ class ConverterPython(ConverterBase):
             type_comment=None,
         )
 
-    def __generate_decorator(self, decorator_name: str, data: list[str]) -> List[ast.Call]:
+    def __generate_decorator(self, decorator_name: str, data: List[str]) -> List[ast.Call]:
         return [
             ast.Call(
                 func=ast.Name(id=decorator_name, ctx=ast.Load()),
-                args=[ast.Constant(value=depends, kind=None) for depends in data or []],
+                args=[ast.Constant(value=depends.strip(), kind=None) for depends in data or []],
                 keywords=[],
             )
         ]
 
-    def __generate_for_loop(self, assignation: Union[ast.Pass, ast.Assign] = None) -> ast.For:
+    def __generate_for_loop(
+        self,
+        loop_var: List[str] = None,
+        var_name: str = "self",
+        body: Union[ast.Module, ast.Pass, ast.Assign, List[ast.Expr]] = None,
+    ) -> ast.For:
+        if not loop_var:
+            loop_var = ["record"]
+
         return ast.For(
-            target=ast.Name(id="record", ctx=ast.Store()),
-            iter=ast.Name(id="self", ctx=ast.Load()),
+            target=ast.Tuple(elts=[ast.Name(id=var, ctx=ast.Store()) for var in loop_var], ctx=ast.Store()),
+            iter=ast.Name(id=var_name, ctx=ast.Load()),
             lineno=0,
-            body=[assignation],
+            body=[body] if isinstance(body, (ast.Module, ast.Pass, ast.Assign)) else body,
             orelse=[],
         )
+
+    def __generate_logger_ast(
+        self, message: Union[ast.Constant, ast.BinOp, ast.Expr], log_level: str = "info", logger_id: str = "_logger"
+    ) -> ast.Expr:
+        return ast.Expr(
+            value=ast.Call(
+                func=ast.Attribute(value=ast.Name(id=logger_id, ctx=ast.Load()), attr=log_level, ctx=ast.Load()),
+                args=[message],
+                keywords=[],
+            )
+        )
+
+    # @TODO : call move_field_to_module and move_field_to_module methods
+
+    def generate_migration_script(self, models: List[tuple[str, str]], fields: List[tuple[str, str, str]]) -> str:
+        code: List[Union[ast.Expr, ast.Assign, ast.FunctionDef]] = []
+        loop_code = []
+
+        code.append(
+            ast.Assign(
+                targets=[ast.Name(id="_logger", ctx=ast.Store())],
+                value=ast.Call(
+                    func=ast.Attribute(value=ast.Name(id="logging", ctx=ast.Load()), attr="getLogger", ctx=ast.Load()),
+                    args=[ast.Name(id="__name__", ctx=ast.Load())],
+                    keywords=[],
+                ),
+            )
+        )
+
+        loop_code.append(
+            ast.Assign(
+                targets=[ast.Name(id="env", ctx=ast.Store())],
+                value=ast.Call(
+                    func=ast.Attribute(value=ast.Name(id="util", ctx=ast.Load()), attr="env", ctx=ast.Load()),
+                    args=[ast.Name(id="cr", ctx=ast.Load())],
+                    keywords=[],
+                ),
+            )
+        )
+
+        loop_code.append(self.__generate_mig_loop("field", fields))
+        loop_code.append(self.__generate_mig_loop("model", models))
+
+        code.append(self.__generate_method("migrate", loop_code, args=["cr", "version"]))
+
+        return astunparse.unparse(code)
+
+    def __generate_mig_loop(self, loop_type: str, to_migrate: Union[List[tuple[str, str]], List[tuple[str, str, str]]]):
+        code: List[Union[ast.Assign, ast.Expr, ast.For]] = []
+
+        code.append(self.__generate_logger_ast(ast.Constant(value=f"Renaming {loop_type}s")))
+
+        # Create AST nodes for the to_rename_models
+        code.append(
+            ast.Assign(
+                targets=[ast.Name(id=f"to_rename_{loop_type}s", ctx=ast.Store())],
+                value=ast.Tuple(
+                    elts=[
+                        ast.Tuple(
+                            elts=[ast.Constant(value=v) for v in x],
+                            ctx=ast.Load(),
+                        )
+                        for x in to_migrate
+                    ]
+                    if to_migrate
+                    else [],
+                    ctx=ast.Load(),
+                ),
+            )
+        )
+
+        model_loop_code: List[
+            Union[
+                ast.Expr,
+            ]
+        ] = []
+
+        model_loop_code.append(
+            self.__generate_logger_ast(
+                ast.BinOp(
+                    left=ast.Constant(value="rename model : %s -> %s")
+                    if loop_type == "model"
+                    else ast.Constant(value="rename field : %s -> %s on %s"),
+                    op=ast.Mod(),
+                    right=ast.Tuple(
+                        elts=[
+                            ast.Name(id="old_model", ctx=ast.Load()),
+                            ast.Name(id="new_model", ctx=ast.Load()),
+                        ]
+                        if loop_type == "model"
+                        else [
+                            ast.Name(id="old_field", ctx=ast.Load()),
+                            ast.Name(id="new_field", ctx=ast.Load()),
+                            ast.Name(id="model", ctx=ast.Load()),
+                        ],
+                        ctx=ast.Load(),
+                    ),
+                )
+            )
+        )
+
+        # Create AST nodes for the SQL execution
+        model_loop_code.append(
+            ast.Expr(
+                value=ast.Call(
+                    func=ast.Attribute(value=ast.Name(id="cr", ctx=ast.Load()), attr="execute", ctx=ast.Load()),
+                    args=[
+                        ast.Constant(value="UPDATE ir_model SET state='base' WHERE model LIKE %s")
+                        if loop_type == "model"
+                        else ast.Constant(
+                            value="UPDATE ir_model_fields SET state='base' WHERE model LIKE %s AND name LIKE %s"
+                        ),
+                        ast.List(elts=[ast.Name(id=f"model", ctx=ast.Load())], ctx=ast.Load())
+                        if loop_type == "model"
+                        else ast.List(
+                            elts=[ast.Name(id=f"model", ctx=ast.Load()), ast.Name(id=f"new_field", ctx=ast.Load())],
+                            ctx=ast.Load(),
+                        ),
+                    ],
+                    keywords=[],
+                )
+            )
+        )
+
+        # Create AST nodes for the rename_model call
+        model_loop_code.append(
+            ast.Expr(
+                value=ast.Call(
+                    func=ast.Attribute(
+                        value=ast.Name(id="util", ctx=ast.Load()), attr=f"rename_{loop_type}", ctx=ast.Load()
+                    ),
+                    args=[
+                        ast.Name(id="cr", ctx=ast.Load()),
+                        ast.Name(id=f"old_model", ctx=ast.Load()),
+                        ast.Name(id=f"new_model", ctx=ast.Load()),
+                    ]
+                    if loop_type == "model"
+                    else [
+                        ast.Name(id="cr", ctx=ast.Load()),
+                        ast.Name(id=f"model", ctx=ast.Load()),
+                        ast.Name(id=f"old_field", ctx=ast.Load()),
+                        ast.Name(id=f"new_field", ctx=ast.Load()),
+                    ],
+                    keywords=[],
+                )
+            )
+        )
+
+        code.append(
+            self.__generate_for_loop(
+                loop_var=["model", "old_field", "new_field"] if loop_type == "field" else ["old_model", "new_model"],
+                var_name=f"to_rename_{loop_type}s",
+                body=model_loop_code,
+            )
+        )
+
+        return code
