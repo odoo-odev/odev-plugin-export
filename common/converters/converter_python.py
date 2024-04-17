@@ -16,6 +16,8 @@ from black import InvalidInput
 from odev.common.connectors.rpc import FieldsGetMapping
 from odev.common.string import indent
 
+from odev.plugins.ps_tech_odev_export.common.ast_newline import CustomUnparser, NewLine, unparse
+
 from .converter_base import ConverterBase
 
 
@@ -334,6 +336,8 @@ class ConverterPython(ConverterBase):
             )
         )
 
+        code.append(NewLine())
+
         loop_code.append(
             ast.Assign(
                 targets=[ast.Name(id="env", ctx=ast.Store())],
@@ -344,18 +348,20 @@ class ConverterPython(ConverterBase):
                 ),
             )
         )
+        loop_code.append(NewLine())
 
         loop_code.append(self.__generate_mig_loop("field", fields))
         loop_code.append(self.__generate_mig_loop("model", models))
 
         code.append(self.__generate_method("migrate", loop_code, args=["cr", "version"]))
 
-        return astunparse.unparse(code)
+        return unparse(code)
 
     def __generate_mig_loop(self, loop_type: str, to_migrate: Union[List[tuple[str, str]], List[tuple[str, str, str]]]):
         code: List[Union[ast.Assign, ast.Expr, ast.For]] = []
 
         code.append(self.__generate_logger_ast(ast.Constant(value=f"Renaming {loop_type}s")))
+        code.append(NewLine())
 
         # Create AST nodes for the to_rename_models
         code.append(
@@ -375,6 +381,8 @@ class ConverterPython(ConverterBase):
                 ),
             )
         )
+
+        code.append(NewLine())
 
         model_loop_code: List[
             Union[
@@ -452,6 +460,8 @@ class ConverterPython(ConverterBase):
                 )
             )
         )
+        model_loop_code.append(NewLine())
+        model_loop_code.append(NewLine())
 
         code.append(
             self.__generate_for_loop(

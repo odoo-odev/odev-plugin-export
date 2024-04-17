@@ -7,7 +7,6 @@ from typing import (
     Mapping,
     MutableMapping,
     Tuple,
-    TypedDict,
     Union,
     cast,
 )
@@ -16,12 +15,10 @@ from lxml import etree
 
 from odev.common.connectors.rpc import FieldsGetMapping, RecordData
 
-from odev.plugins.ps_tech_odev_export.common.odoo import DEFAULT_MODULE_LIST, get_xml_ids
+from odev.plugins.ps_tech_odev_export.common.odoo import DEFAULT_MODULE_LIST, RecordMetaData
 
 from .converter_base import ConverterBase
 
-
-RecordMetaData = TypedDict("RecordMetaData", {"xml_id": str, "noupdate": bool})
 
 RPC_DATA_CACHE: MutableMapping[str, MutableMapping[int, RecordData]] = {}
 RPC_FIELDS_CACHE: MutableMapping[str, FieldsGetMapping] = {}
@@ -61,7 +58,7 @@ class ConverterXml(ConverterBase):
             node.set("eval", str(value))
         else:
             field = cast(str, node.get("name"))
-            record_metadata = get_xml_ids(self.xml_ids, fields_get[field]["relation"], [value])
+            record_metadata = self.get_xml_ids(self.xml_ids, str(fields_get[field]["relation"]), [value])
             self._rename_fields(record_metadata[value])
             node.set("ref", record_metadata[value]["xml_id"])
 
@@ -72,7 +69,7 @@ class ConverterXml(ConverterBase):
         :param value: The value of the field to serialize
         """
         field = cast(str, node.get("name"))
-        linked_record_metadata = get_xml_ids(self.xml_ids, fields_get[field]["relation"], value)
+        linked_record_metadata = self.get_xml_ids(self.xml_ids, fields_get[field]["relation"], value)
         self._rename_fields(linked_record_metadata)
 
         def _link_command(metadata: RecordMetaData):
@@ -121,7 +118,7 @@ class ConverterXml(ConverterBase):
         """
         self._name = model
 
-        record_metadatas = get_xml_ids(self.xml_ids, model, [r["id"] for r in records])
+        record_metadatas = self.get_xml_ids(self.xml_ids, model, [r["id"] for r in records])
 
         root = etree.Element("odoo")
 

@@ -25,6 +25,7 @@ from odev.common.logging import logging
 from odev.common.odoobin import OdoobinProcess
 from odev.common.version import OdooVersion
 
+from odev.plugins.ps_tech_odev_export.common.converters.converter_base import ConverterBase
 from odev.plugins.ps_tech_odev_export.common.converters.converter_factory import ConverterFactory
 from odev.plugins.ps_tech_odev_export.common.converters.converter_python import ConverterPython
 from odev.plugins.ps_tech_odev_export.common.merge.merge_factory import MergeFactory
@@ -136,6 +137,7 @@ class ExportCommand(DatabaseCommand):
         )
 
         for module, data in ids_to_export.items():
+            ConverterBase.depends = []
             logger.info(f"Exporting '{module}' module to {Path(self.args.path / module)}")
             for model in data.keys():
                 config = self.export_config[model]
@@ -171,7 +173,14 @@ class ExportCommand(DatabaseCommand):
 
         manifest_file = Path(self.args.path / module / "__manifest__.py")
 
-        manifest: dict[str, Union[str, List[str]]] = {"name": f"{module} export", "depends": ["base"], "data": []}
+        depends = [m for m in ConverterBase.depends if m != module] or ["base"]
+
+        manifest: dict[str, Union[str, List[str]]] = {
+            "name": f"{module} export",
+            "version": str(self._database.version) + ".1.0.0",
+            "depends": depends,
+            "data": [],
+        }
 
         for folder in ["data", "views", "security"]:
             for file in Path(self.args.path / module / folder).glob("*"):
@@ -187,12 +196,18 @@ class ExportCommand(DatabaseCommand):
         imports = {"odoo": ["SUPERUSER_ID", "api"], "odoo.upgrade": ["util"], "logging": [], "os": []}
 
         mig_script: str = self.converter_py.export_mig_script(imports, records, config)
-        mig_script_path = Path(self.args.path, module, "migrations", "0.0.0")
+        mig_script_path = Path(self.args.path, module, "migrations", str(self._database.version) + ".1.0.0")
+
+        if not mig_script:
+            return
 
         mig_script_path.mkdir(parents=True, exist_ok=True)
 
         with Path(mig_script_path, "pre-10.py").open("w") as f:
             f.write(mig_script)
+
+        with Path(self.args.path, "requirements.txt").open("w") as f:
+            f.write("odoo_upgrade @ git+https://github.com/odoo/upgrade-util@master")
 
     def __load_config(self):
         """Load the config file and override config for importable module if needed
@@ -351,8 +366,8 @@ class ExportCommand(DatabaseCommand):
 
         tracker.stop()
 
-        if model == "ir.model":
-            logger.info("Export mig script")
-            self.__generate_mig_script(module, _records, config)
-
         logger.info(f"Exported {len(records)} {model} records")
+
+        if model == "ir.model":
+            logger.info("Exported 'pre-10' migration script")
+            self.__generate_mig_script(module, _records, config)

@@ -91,6 +91,7 @@ repos:
                 - types-psycopg2==2.9.6
                 - types-requests==2.27.9
                 - types-PyYAML==6.0.12
+                - types-six>=1.16.21
 
     - repo: https://github.com/asottile/pyupgrade
       rev: v2.31.0

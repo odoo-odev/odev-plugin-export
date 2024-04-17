@@ -4,8 +4,6 @@ from typing import Generator, Tuple
 
 from odev.common.connectors.rpc import FieldsGetMapping
 
-from odev.plugins.ps_tech_odev_export.common.odoo import get_xml_ids
-
 from .converter_base import ConverterBase
 
 
@@ -31,7 +29,7 @@ class ConverterCsv(ConverterBase):
             items = []
             for field in config["fields"]:
                 if relation := fields_get[field].get("relation"):
-                    record_metadata = get_xml_ids(self.xml_ids, relation, [record[field]])
+                    record_metadata = self.get_xml_ids(self.xml_ids, relation, [record[field]])
                     self._rename_fields(record_metadata[record[field]])
                     record_metadata = record_metadata[record[field]]
 
