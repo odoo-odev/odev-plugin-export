@@ -45,7 +45,7 @@ class ExportCommand(DatabaseCommand):
     domain = args.String(
         aliases=["-d", "--domain"],
         description="The domain to filter the records to export.",
-        default=[],
+        default="[]",
     )
     fields = args.List(
         aliases=["-F", "--fields"],
@@ -54,8 +54,8 @@ class ExportCommand(DatabaseCommand):
     format = args.String(
         aliases=["-t", "--format"],
         description="The output format.",
-        choices=["txt", "json", "csv", "xml", "py"],
-        default="txt",
+        choices=["json", "csv", "xml", "py"],
+        default="xml",
     )
     modules = args.List(
         aliases=["--modules"],
@@ -110,12 +110,7 @@ class ExportCommand(DatabaseCommand):
 
         self.args.modules = list(set(self.args.modules + DEFAULT_MODULE_LIST))
 
-        if any([self.args.model, self.args.domain, self.args.fields]):
-            self.export_config = {
-                self.args.model: {"domain": self.args.domain, "fields": self.args.fields, "format": self.args.format}
-            }
-        else:
-            self.export_config = self.__load_config()
+        self.export_config = self.__load_config()
 
     def run(self):
         self.xml_ids, ids_to_export = self.__load_xml_ids(self.export_config.keys())
@@ -147,13 +142,17 @@ class ExportCommand(DatabaseCommand):
                 if ids := data.get(model, []):
                     self.export(module, model, ids)
 
-            self.__generate_init_files(module)
-            self.__generate_manifest(module)
+            if Path(self.args.path / module).exists():
+                self.__generate_init_files(module)
+                self.__generate_manifest(module)
 
     def __generate_init_files(self, module: str):
         """Generate the __init__.py files for the exported module."""
 
         def generate_init_file(module: str, folder: str, imports: List[str] = None):
+            if not imports:
+                return
+
             init_file = Path(self.args.path / module / folder / "__init__.py")
 
             with init_file.open("w") as f:
@@ -223,6 +222,22 @@ class ExportCommand(DatabaseCommand):
                 for model, conf in config["saas"].items():
                     for key, value in conf.items():
                         config["sh"][model][key] = value
+
+        if any([self.args.model, self.args.domain, self.args.fields]):
+            for model in config["sh"]:
+                if model != self.args.model:
+                    config["sh"][model]["export"] = False
+
+            if model not in config["sh"].keys() and not self.args.fields:
+                raise self.error(f"You need to explicitly define a list of fields for exporting '{self.args.model}'")
+
+            if self.args.model not in config["sh"]:
+                config["sh"][self.args.model] = {
+                    "domain": self.args.domain,
+                    "fields": self.args.fields,
+                    "format": self.args.format,
+                    "file_name_field": self.args.model.replace(".", "_"),
+                }
 
         return config["sh"]
 

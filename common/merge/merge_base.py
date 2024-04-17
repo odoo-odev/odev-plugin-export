@@ -47,7 +47,7 @@ class MergeBase(ABC):
 
     def _get_file_info(self, config: dict, record: dict) -> tuple[Path, Any, str]:
         record_cp = record.copy()
-        file_name = config["file_name_field"]
+        file_name = config.get("file_name_field", "name")
 
         for key in file_name.split("-"):
             key = int(key) if type(record_cp) == list else key
@@ -61,4 +61,4 @@ class MergeBase(ABC):
 
         file_name = str(file_name).replace(".", "_").lower()
 
-        return self.path, config["sub_folder"], f"{file_name}.{config['format']}"
+        return self.path, config.get("sub_folder", "data"), f"{file_name}.{config['format']}"
