@@ -126,6 +126,10 @@ class ConverterXml(ConverterBase):
         self._rename_fields(records, config)
 
         for record in records:
+
+            if model in ["ir.model", "ir.model.fields"] and record.get("state") == "base":
+                continue
+
             record_metadata = record_metadatas[record["id"]]
             self._rename_fields(record_metadata)
 

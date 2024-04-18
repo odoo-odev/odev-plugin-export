@@ -245,7 +245,9 @@ class ExportCommand(DatabaseCommand):
         """
         with progress.spinner("Loading all XML IDs"):
             imd = self._database.models["ir.model.data"].search_read(
-                [["model", "in", list(models)]], fields=["res_id", "noupdate", "name", "module", "model"], order="model"
+                [["model", "in", list(models)]],
+                fields=["res_id", "noupdate", "name", "module", "model"],
+                order="model, id desc",
             )
             xml_ids = defaultdict(list)
             for i in imd:
