@@ -104,8 +104,7 @@ class ExportCommand(DatabaseCommand):
                 logger.warning(f"Existing folder '{self.args.path}' successfully deleted")
                 shutil.rmtree(self.args.path)
 
-        if not self.args.path.exists():
-            self.args.path.mkdir(parents=True)
+        self.args.path.mkdir(parents=True, exist_ok=True)
 
         self.args.modules = list(set(self.args.modules + DEFAULT_MODULE_LIST))
 
@@ -339,7 +338,12 @@ class ExportCommand(DatabaseCommand):
 
             inc_data_dict = defaultdict(list)
             for record in inc_data:
-                if same_module_ids and record["id"] in same_module_ids or not same_module_ids:
+                if (
+                    inc_model == "ir.model.fields"
+                    or same_module_ids
+                    and record["id"] in same_module_ids
+                    or not same_module_ids
+                ):
                     inc_data_dict[str(record[inc_config["inverse_name"]])].append(record)
 
             for record in data:
