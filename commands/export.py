@@ -45,7 +45,6 @@ class ExportCommand(DatabaseCommand):
     domain = args.String(
         aliases=["-d", "--domain"],
         description="The domain to filter the records to export.",
-        default="[]",
     )
     fields = args.List(
         aliases=["-F", "--fields"],
@@ -99,7 +98,7 @@ class ExportCommand(DatabaseCommand):
                     f"Path {self.args.path.as_posix()} already exist and doesn't seem to be an Odoo module path"
                 )
 
-            if len(list(self.args.path.iterdir())) and logger.confirm(
+            if len(list(self.args.path.iterdir())) and self.console.confirm(
                 f"The folder {self.args.path} already exist do you want to delete first ?"
             ):
                 logger.warning(f"Existing folder '{self.args.path}' successfully deleted")
@@ -364,6 +363,7 @@ class ExportCommand(DatabaseCommand):
             return
 
         fields_get = self._database.models[model].fields_get()
+
         default_get = self._database.models[model].default_get(list(fields_get.keys()))
 
         tracker = progress.Progress()

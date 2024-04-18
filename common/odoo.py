@@ -20,7 +20,7 @@ def get_xml_ids(xml_ids, model: str = "", ids: List = None, rename_field: bool =
             "noupdate": False,
             "module": "__export_module__",
             "xml_id": "",
-            "res_id": None,
+            "res_id": id,
         }
         for id in ids
     }

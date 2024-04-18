@@ -73,10 +73,11 @@ class ConverterXml(ConverterBase):
         self._rename_fields(linked_record_metadata)
 
         def _link_command(metadata: RecordMetaData):
-            linked_record_ref = f"ref('{metadata['xml_id']}')"
+            linked_record_ref = f"ref('{metadata['xml_id']}')" if metadata["xml_id"] else metadata["res_id"]
             return f"Command.link({linked_record_ref})" if self.version.major >= 14 else f"(4, {linked_record_ref})"
 
         commands = ", ".join(_link_command(metadata) for metadata in linked_record_metadata.values())
+
         node.set("eval", f"[{commands}]")
 
     def __convert_xml_any(self, node: etree._Element, fields_get: FieldsGetMapping, value: Any) -> None:
@@ -155,7 +156,12 @@ class ConverterXml(ConverterBase):
                 if field in ("id", "__xml_id") or field not in fields_get:
                     continue
 
-                if field in default_get.keys() and value == default_get[field]:
+                if (
+                    field in default_get.keys()
+                    and value == default_get[field]
+                    or fields_get[field]["type"] != "boolean"
+                    and not value
+                ):
                     continue
 
                 field_node = etree.SubElement(record_node, "field", {"name": field})
