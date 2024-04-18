@@ -16,24 +16,28 @@ sh:
         sub_folder: views
         file_name_field: model
         fields: [name, res_model, view_mode, view_id, domain, context, help, type]
+        priority: 4
 
     ir.actions.act_window.view:
         format: xml
         sub_folder: data
         file_name_field: act_window_view
         fields: [view_id, act_window_id, sequence, view_mode]
+        priority: 5
 
     ir.actions.report:
         format: xml
-        sub_folder: data
-        file_name_field: report
+        sub_folder: views
+        file_name_field: model
         fields: [name, model, report_type, report_name, report_file, paperformat_id, binding_model_id]
+        priority: 6
 
     ir.actions.report.xml:
         format: xml
-        sub_folder: data
-        file_name_field: report_xml
+        sub_folder: views
+        file_name_field: model
         fields: [name, model, report_name, report_file, paperformat_id]
+        priority: 7
 
     ir.filters:
         format: xml
@@ -83,6 +87,7 @@ sh:
                 model,
                 selection_ids,
             ]
+        priority: 2
         includes:
             ir.model.fields.selection:
                 <<: *imfs
@@ -94,6 +99,7 @@ sh:
         format: py
         sub_folder: models
         file_name_field: model
+        priority: 1
         includes:
             ir.model.fields:
                 <<: *imf
@@ -190,6 +196,14 @@ sh:
         sub_folder: views
         file_name_field: model
         fields: [name, model, inherit_id, mode, arch]
+        priority: 3
+
+    report.paperformat:
+        format: xml
+        sub_folder: views
+        file_name_field: model
+        fields: [name, model, report_name, report_file, paperformat_id, binding_model_id]
+        priority: 6
 
     res.groups: &rg
         format: xml

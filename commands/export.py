@@ -170,7 +170,7 @@ class ExportCommand(DatabaseCommand):
 
         manifest_file = Path(self.args.path / module / "__manifest__.py")
 
-        depends = [m for m in ConverterBase.depends if m != module] or ["base"]
+        depends = [m for m in ConverterBase.depends if m not in ["base", module]] or ["base"]
 
         manifest: dict[str, Union[str, List[str]]] = {
             "name": f"{module} export",
@@ -237,6 +237,8 @@ class ExportCommand(DatabaseCommand):
                     "file_name_field": self.args.model.replace(".", "_"),
                 }
 
+        config["sh"] = dict(sorted(config["sh"].items(), key=lambda x: x[1].get("priority", float("inf"))))
+
         return config["sh"]
 
     def __load_xml_ids(self, models):
@@ -245,7 +247,7 @@ class ExportCommand(DatabaseCommand):
         """
         with progress.spinner("Loading all XML IDs"):
             imd = self._database.models["ir.model.data"].search_read(
-                [["model", "in", list(models)]],
+                [],
                 fields=["res_id", "noupdate", "name", "module", "model"],
                 order="model, id desc",
             )
@@ -257,11 +259,13 @@ class ExportCommand(DatabaseCommand):
 
         with progress.spinner("Loading XML IDs to export"):
             ids_to_export: Dict[str, Dict[str, List[int]]] = defaultdict(
-                lambda: {k: [] for k in sorted(self.export_config.keys())}
+                lambda: {k: [] for k in self.export_config.keys()}
             )
 
             for model, id_ in xml_ids.items():
-                for xml_id in filter(lambda x: x["module"] in self.args.modules, id_):
+                for xml_id in filter(
+                    lambda x: x["module"] in self.args.modules and x["model"] in self.export_config.keys(), id_
+                ):
                     ids_to_export[xml_id["module"]][model].append(xml_id["res_id"])
 
             for model, config in self.export_config.items():
