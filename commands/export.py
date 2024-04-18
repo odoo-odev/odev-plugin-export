@@ -124,6 +124,7 @@ class ExportCommand(DatabaseCommand):
         # TODO: Add prettify argument as before
         self.merge = MergeFactory(
             version=OdooVersion(self.args.version),
+            xml_ids=self.xml_ids,
             path=self.args.path,
             prettify=True,
             migrate_code=not self.args.no_migrate_code,

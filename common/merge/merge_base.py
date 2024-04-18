@@ -1,7 +1,7 @@
 import os
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict, List
 
 from odev.common.logging import logging
 from odev.common.version import OdooVersion
@@ -13,15 +13,21 @@ logger = logging.getLogger(__name__)
 class MergeBase(ABC):
     version: OdooVersion = None
     prettify: bool = False
-    xml_ids: list[dict] = None
+    xml_ids: List[Dict] = None
     migrate_code: bool = True
 
     def __init__(
-        self, version: OdooVersion = None, path: Path = None, prettify: bool = False, migrate_code: bool = True
+        self,
+        version: OdooVersion = None,
+        xml_ids: List[Dict] = None,
+        path: Path = None,
+        prettify: bool = False,
+        migrate_code: bool = True,
     ) -> None:
         """Initialize the Merger configuration."""
         self.version: OdooVersion = version
         self.prettify = prettify
+        self.xml_ids = xml_ids
         self.path = Path(os.getcwd() if not path else path)
         self.migrate_code = migrate_code
 
@@ -52,12 +58,16 @@ class MergeBase(ABC):
         for key in file_name.split("-"):
             key = int(key) if type(record_cp) == list else key
             if (type(record_cp) == list and record_cp[key]) or (type(record_cp) == dict and key in record_cp):
+                file_name = ""
                 if type(record_cp[key]) in [str, bool, int]:
                     if record_cp[key]:
                         file_name = record_cp[key]
                         break
                 else:
                     record_cp = record_cp[key]
+
+        if not file_name:
+            file_name = record["__xml_id"]
 
         file_name = str(file_name).replace(".", "_").lower()
 

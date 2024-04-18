@@ -28,7 +28,9 @@ class MergeFactory(MergeBase):
             case _:
                 raise ValueError("Unsupported data type")
 
-        return merge_cls(self.version, self.path, self.prettify).merge(module, code, model, record, config)
+        return merge_cls(self.version, self.xml_ids, self.path, self.prettify).merge(
+            module, code, model, record, config
+        )
 
     def _merge(self, file_path: Path, file_name: str, record: dict, code: str):
         raise NotImplementedError("Merge method must be implemented in subclass")
