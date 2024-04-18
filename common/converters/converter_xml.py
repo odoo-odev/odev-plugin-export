@@ -48,6 +48,7 @@ class ConverterXml(ConverterBase):
         node: etree._Element,
         fields_get: Mapping[str, Mapping[str, Union[str, bool]]],
         value: Union[Literal[False], int],
+        module: str,
     ) -> None:
         """Serialize a many2one field to XML.
         :param node: The XML node to serialize the field to
@@ -58,18 +59,20 @@ class ConverterXml(ConverterBase):
             node.set("eval", str(value))
         else:
             field = cast(str, node.get("name"))
-            record_metadata = self.get_xml_ids(self.xml_ids, str(fields_get[field]["relation"]), [value])
+            record_metadata = self.get_xml_ids(self.xml_ids, str(fields_get[field]["relation"]), [value], module=module)
             self._rename_fields(record_metadata[value])
             node.set("ref", record_metadata[value]["xml_id"])
 
-    def __convert_xml_x2many(self, node: etree._Element, fields_get: FieldsGetMapping, value: List[int]) -> None:
+    def __convert_xml_x2many(
+        self, node: etree._Element, fields_get: FieldsGetMapping, value: List[int], module: str
+    ) -> None:
         """Serialize a x2many field to XML.
         :param node: The XML node to serialize the field to
         :param field: The name of the field to serialize
         :param value: The value of the field to serialize
         """
         field = cast(str, node.get("name"))
-        linked_record_metadata = self.get_xml_ids(self.xml_ids, fields_get[field]["relation"], value)
+        linked_record_metadata = self.get_xml_ids(self.xml_ids, fields_get[field]["relation"], value, module=module)
         self._rename_fields(linked_record_metadata)
 
         def _link_command(metadata: RecordMetaData):
@@ -119,7 +122,7 @@ class ConverterXml(ConverterBase):
         """
         self._name = model
 
-        record_metadatas = self.get_xml_ids(self.xml_ids, model, [r["id"] for r in records])
+        record_metadatas = self.get_xml_ids(self.xml_ids, model, [r["id"] for r in records], module=module)
 
         root = etree.Element("odoo")
 
@@ -160,12 +163,12 @@ class ConverterXml(ConverterBase):
                 if field in ("id", "__xml_id") or field not in fields_get:
                     continue
 
-                if (
-                    field in default_get.keys()
-                    and value == default_get[field]
-                    or fields_get[field]["type"] != "boolean"
-                    and not value
-                ):
+                if field == "copied" and "copied" not in default_get:
+                    default_get[field] = (fields_get[field]["type"] != "one2many") and not (
+                        fields_get[field].get("related") or fields_get[field].get("computed")
+                    )
+
+                if value == default_get.get(field, False) or fields_get[field]["type"] != "boolean" and not value:
                     continue
 
                 field_node = etree.SubElement(record_node, "field", {"name": field})
@@ -173,10 +176,10 @@ class ConverterXml(ConverterBase):
                 match fields_get[field]["type"]:
                     case "many2one":
                         value = cast(Union[int, Literal[False]], value)
-                        self.__convert_xml_many2one(field_node, fields_get, value)
+                        self.__convert_xml_many2one(field_node, fields_get, value, module)
                     case "one2many" | "many2many":
                         value = cast(List[int], value)
-                        self.__convert_xml_x2many(field_node, fields_get, value)
+                        self.__convert_xml_x2many(field_node, fields_get, value, module)
                     case "boolean":
                         value = cast(bool, value)
                         field_node.text = str(value)

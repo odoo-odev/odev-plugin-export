@@ -67,9 +67,9 @@ class ConverterBase(ABC):
                                 self._rename_fields(record[inc_model])
 
     def get_xml_ids(
-        self, xml_ids, model: str = "", ids: List = None, rename_field: bool = False
+        self, xml_ids, model: str = "", ids: List = None, rename_field: bool = False, module: str = ""
     ) -> Dict[Union[int, str], RecordMetaData]:
-        xml_ids = get_xml_ids(xml_ids, model, ids, rename_field)
+        xml_ids = get_xml_ids(xml_ids, model, ids, rename_field, module)
 
         ConverterBase.depends = list(set(ConverterBase.depends + [x["module"] for x in xml_ids.values()]))
 

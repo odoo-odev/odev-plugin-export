@@ -28,12 +28,17 @@ class ConverterCsv(ConverterBase):
         for record in records:
             items = []
             for field in config["fields"]:
+
                 if relation := fields_get[field].get("relation"):
-                    record_metadata = self.get_xml_ids(self.xml_ids, relation, [record[field]])
+                    record_metadata = self.get_xml_ids(self.xml_ids, relation, [record[field]], module=module)
                     self._rename_fields(record_metadata[record[field]])
                     record_metadata = record_metadata[record[field]]
 
-                    items.append(f"{record_metadata['module']}.{record_metadata['name']}")
+                    items.append(record_metadata["xml_id"])
+                elif field == "id":
+                    record_metadata = self.get_xml_ids(self.xml_ids, model, [record["id"]], module=module)
+                    self._rename_fields(record_metadata[record[field]])
+                    items.append(record_metadata[record["id"]]["xml_id"])
                 else:
                     items.append(str(record.get(field, "")))
 

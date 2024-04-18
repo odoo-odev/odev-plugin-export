@@ -10,7 +10,9 @@ RecordMetaData = TypedDict(
 )
 
 
-def get_xml_ids(xml_ids, model: str = "", ids: List = None, rename_field: bool = False) -> Dict[int, RecordMetaData]:
+def get_xml_ids(
+    xml_ids, model: str = "", ids: List = None, rename_field: bool = False, module: str = ""
+) -> Dict[int, RecordMetaData]:
     model_clean = model.replace(".", "_")
 
     default: Dict[int, RecordMetaData] = {
@@ -28,7 +30,9 @@ def get_xml_ids(xml_ids, model: str = "", ids: List = None, rename_field: bool =
     for xml_id in xml_ids[model]:
         if xml_id["model"] == model and xml_id["res_id"] in ids:
             default[xml_id["res_id"]].update(xml_id)
-            default[xml_id["res_id"]]["xml_id"] = f"{xml_id['module']}.{xml_id['name']}"
+            default[xml_id["res_id"]]["xml_id"] = (
+                f"{xml_id['module']}.{xml_id['name']}" if xml_id["module"] != module else xml_id["name"]
+            )
 
     return default
 
