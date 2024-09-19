@@ -15,7 +15,7 @@ from lxml import etree
 
 from odev.common.connectors.rpc import FieldsGetMapping, RecordData
 
-from odev.plugins.ps_tech_odev_export.common.odoo import DEFAULT_MODULE_LIST, RecordMetaData
+from odev.plugins.odev_plugin_export.common.odoo import DEFAULT_MODULE_LIST, RecordMetaData
 
 from .converter_base import ConverterBase
 

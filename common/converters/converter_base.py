@@ -11,7 +11,7 @@ from odev.common.connectors.rpc import FieldsGetMapping
 from odev.common.logging import logging
 from odev.common.version import OdooVersion
 
-from odev.plugins.ps_tech_odev_export.common.odoo import RecordMetaData, get_xml_ids, rename_field_base
+from odev.plugins.odev_plugin_export.common.odoo import RecordMetaData, get_xml_ids, rename_field_base
 
 
 logger = logging.getLogger(__name__)

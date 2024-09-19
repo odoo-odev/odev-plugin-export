@@ -16,7 +16,7 @@ from black import InvalidInput
 from odev.common.connectors.rpc import FieldsGetMapping
 from odev.common.string import indent
 
-from odev.plugins.ps_tech_odev_export.common.ast_newline import CustomUnparser, NewLine, unparse
+from odev.plugins.odev_plugin_export.common.ast_newline import CustomUnparser, NewLine, unparse
 
 from .converter_base import ConverterBase
 

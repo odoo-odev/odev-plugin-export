@@ -25,11 +25,11 @@ from odev.common.logging import logging
 from odev.common.odoobin import OdoobinProcess
 from odev.common.version import OdooVersion
 
-from odev.plugins.ps_tech_odev_export.common.converters.converter_base import ConverterBase
-from odev.plugins.ps_tech_odev_export.common.converters.converter_factory import ConverterFactory
-from odev.plugins.ps_tech_odev_export.common.converters.converter_python import ConverterPython
-from odev.plugins.ps_tech_odev_export.common.merge.merge_factory import MergeFactory
-from odev.plugins.ps_tech_odev_export.common.odoo import DEFAULT_MODULE_LIST, get_xml_ids
+from odev.plugins.odev_plugin_export.common.converters.converter_base import ConverterBase
+from odev.plugins.odev_plugin_export.common.converters.converter_factory import ConverterFactory
+from odev.plugins.odev_plugin_export.common.converters.converter_python import ConverterPython
+from odev.plugins.odev_plugin_export.common.merge.merge_factory import MergeFactory
+from odev.plugins.odev_plugin_export.common.odoo import DEFAULT_MODULE_LIST, get_xml_ids
 
 
 logger = logging.getLogger(__name__)
