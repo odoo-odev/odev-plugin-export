@@ -41,7 +41,7 @@ class ExportCommand(DatabaseCommand):
     _name = "export"
     _aliases = ["search", "read", "records"]
 
-    model = args.String(name="model", aliases=["-m", "--model"], description="The model to export.")
+    model = args.String(name="model", aliases=["-m", "--models"], description="The models to export.")
     domain = args.String(
         aliases=["-d", "--domain"],
         description="The domain to filter the records to export.",
@@ -223,20 +223,19 @@ class ExportCommand(DatabaseCommand):
                         config["sh"][model][key] = value
 
         if any([self.args.model, self.args.domain, self.args.fields]):
-            for model in config["sh"]:
-                if model != self.args.model:
-                    config["sh"][model]["export"] = False
+            for export_model in self.args.model.split(","):
+                for model in config["sh"]:
+                    if model != export_model and model not in self.args.model.split(","):
+                        config["sh"][model]["export"] = False
 
-            if model not in config["sh"].keys() and not self.args.fields:
-                raise self.error(f"You need to explicitly define a list of fields for exporting '{self.args.model}'")
-
-            if self.args.model not in config["sh"]:
-                config["sh"][self.args.model] = {
-                    "domain": self.args.domain,
-                    "fields": self.args.fields,
-                    "format": self.args.format,
-                    "file_name_field": self.args.model.replace(".", "_"),
-                }
+                if export_model not in config["sh"].keys():
+                    config["sh"][export_model] = {
+                        "export": True,
+                        "domain": self.args.domain or "[]",
+                        "fields": self.args.fields or [],
+                        "format": self.args.format,
+                        "file_name_field": export_model.replace(".", "_"),
+                    }
 
         config["sh"] = dict(sorted(config["sh"].items(), key=lambda x: x[1].get("priority", float("inf"))))
 
