@@ -254,7 +254,7 @@ class ConverterPython(ConverterBase):
                     body = self.__generate_for_loop(body=ast.Pass())
                     _computes.append(self.__generate_method(f"_inverse_{field_data['name']}", body))
 
-        return astunparse.unparse(_computes) or ""
+        return ast.unparse(ast.Module(body=_computes, type_ignores=[])) or ""
 
     def __generate_method(
         self,
