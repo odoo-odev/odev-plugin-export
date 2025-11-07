@@ -326,7 +326,7 @@ class ExportCommand(DatabaseCommand):
                 domain, fields=config.get("fields", []), order=config.get("order", [])
             )
         except ConnectorError as conn_error:
-            logger.debug(f"Failed to export {model} records: {conn_error}")
+            logger.error(f"Failed to export {model} records: {conn_error}")
             return []
 
         for inc_model, inc_config in config.get("includes", {}).items():
