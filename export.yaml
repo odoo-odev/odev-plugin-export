@@ -43,7 +43,7 @@ sh:
         format: xml
         sub_folder: data
         file_name_field: filter
-        fields: [name, model_id, context, domain, sort, user_id]
+        fields: [name, model_id, user_ids, action_id, context, domain, sort]
 
     ir.model.access:
         format: csv
@@ -125,7 +125,7 @@ sh:
                 model_id,
                 model_name,
                 binding_model_id,
-                groups_id,
+                group_ids,
             ]
         includes:
             ir.model:
@@ -138,7 +138,7 @@ sh:
         format: xml
         sub_folder: data
         file_name_field: ir.model-0-model
-        fields: [name, model_id, active, trigger, on_change_field_ids, filter_domain, state, website_published, code]
+        fields: [name, model_id, active, trigger, on_change_field_ids, filter_domain]
         includes:
             ir.model:
                 <<: *im
@@ -202,7 +202,7 @@ sh:
         format: xml
         sub_folder: views
         file_name_field: model
-        fields: [name, model, report_name, report_file, paperformat_id, binding_model_id]
+        fields: [name, default, page_height, page_width, orientation, margin_top, margin_left, margin_right, header_line, header_spacing, dpi, css_margins]
         priority: 6
 
     res.groups: &rg
