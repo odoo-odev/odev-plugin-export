@@ -12,7 +12,6 @@ logger = logging.getLogger(__name__)
 
 class MergeXml(MergeBase):
     def _merge(self, file_path: Path, file_name: str, record: dict, code: str):
-
         try:
             parser = ET.XMLParser(remove_blank_text=True, strip_cdata=False)
 

@@ -1,10 +1,7 @@
 from abc import ABC, abstractmethod
+from collections.abc import Generator
 from typing import (
     Any,
-    Dict,
-    Generator,
-    List,
-    Union,
 )
 
 from odev.common.connectors.rpc import FieldsGetMapping
@@ -21,13 +18,13 @@ class ConverterBase(ABC):
     version: OdooVersion = None
     migrate_code: bool = True
     prettify: bool = False
-    xml_ids: List[Dict] = None
-    fields_to_rename: List[str] = []
+    xml_ids: list[dict] = None
+    fields_to_rename: list[str] = []
 
-    depends: List[str] = []
+    depends: list[str] = []
 
     def __init__(
-        self, version: OdooVersion = None, prettify: bool = False, xml_ids: List[Dict] = None, migrate_code: bool = True
+        self, version: OdooVersion = None, prettify: bool = False, xml_ids: list[dict] = None, migrate_code: bool = True
     ) -> None:
         """Initialize the Converter configuration."""
         self.version: OdooVersion = version
@@ -38,27 +35,27 @@ class ConverterBase(ABC):
     @abstractmethod
     def convert(
         self,
-        data: List[Dict],
+        data: list[dict],
         fields_get: FieldsGetMapping,
         default_get: FieldsGetMapping,
         model: str,
         module: str,
-        config: Dict,
-    ) -> Generator[tuple[Dict[Any, Any], Union[str, tuple[str, Any, str, str]]], None, None]:
+        config: dict,
+    ) -> Generator[tuple[dict[Any, Any], str | tuple[str, Any, str, str]], None, None]:
         raise NotImplementedError("convert method must be implemented in subclass")
 
     def _rename_fields(
         self,
-        records: Union[Dict[Union[int, str], Any], List[Dict[Union[int, str], Any]]],
-        config: Dict[str, Any] = None,
+        records: dict[int | str, Any] | list[dict[int | str, Any]],
+        config: dict[str, Any] = None,
     ):
         if self.migrate_code:
-            if isinstance(records, Dict):
+            if isinstance(records, dict):
                 records = [records]
 
             for record in records:
                 for field in self.fields_to_rename:
-                    if field in record.keys() and record[field]:
+                    if record.get(field):
                         record[field] = rename_field_base(record[field])
 
                     if config:
@@ -67,8 +64,8 @@ class ConverterBase(ABC):
                                 self._rename_fields(record[inc_model])
 
     def get_xml_ids(
-        self, xml_ids, model: str = "", ids: List = None, rename_field: bool = False, module: str = ""
-    ) -> Dict[Union[int, str], RecordMetaData]:
+        self, xml_ids, model: str = "", ids: list = None, rename_field: bool = False, module: str = ""
+    ) -> dict[int | str, RecordMetaData]:
         xml_ids = get_xml_ids(xml_ids, model, ids, rename_field, module)
 
         ConverterBase.depends = list(set(ConverterBase.depends + [x["module"] for x in xml_ids.values()]))

@@ -17,7 +17,6 @@ class NewLine:
 
     def unparse(self, *, indent="", write=None, add_newline=False):
         """Custom unparsing method to insert a newline."""
-
         return "\n\n"
 
 

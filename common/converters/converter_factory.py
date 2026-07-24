@@ -1,4 +1,5 @@
-from typing import Any, Generator, Type, Union
+from collections.abc import Generator
+from typing import Any
 
 from odev.common.logging import logging
 
@@ -10,13 +11,13 @@ from .converter_xml import ConverterXml
 
 logger = logging.getLogger(__name__)
 
-ConverterType = Type[Union[ConverterPython, ConverterXml, ConverterCsv]]
+ConverterType = type[ConverterPython | ConverterXml | ConverterCsv]
 
 
 class ConverterFactory(ConverterBase):
     def convert(
         self, data, fields_get, default_get, model, module: str, config
-    ) -> Generator[tuple[dict[Any, Any], Union[str, tuple[str, Any, str, str]]], None, None]:
+    ) -> Generator[tuple[dict[Any, Any], str | tuple[str, Any, str, str]], None, None]:
         converter_cls: ConverterType = None
 
         match config["format"]:

@@ -9,10 +9,6 @@ from itertools import chain
 from pathlib import Path
 from typing import (
     Any,
-    Dict,
-    List,
-    Optional,
-    Union,
 )
 
 import black
@@ -93,12 +89,12 @@ class ExportCommand(DatabaseCommand):
             if str(self.odev.path).startswith(str(self.args.path)):
                 raise self.error("Odev export can't be launched without --path inside odev folder")
 
-            if not OdoobinProcess.check_addons_path(self.args.path) and len(list(self.args.path.iterdir())):
+            if not OdoobinProcess.check_addons_path(self.args.path) and list(self.args.path.iterdir()):
                 raise self.error(
                     f"Path {self.args.path.as_posix()} already exist and doesn't seem to be an Odoo module path"
                 )
 
-            if len(list(self.args.path.iterdir())) and self.console.confirm(
+            if list(self.args.path.iterdir()) and self.console.confirm(
                 f"The folder {self.args.path} already exist do you want to delete first ?"
             ):
                 logger.warning(f"Existing folder '{self.args.path}' successfully deleted")
@@ -133,7 +129,7 @@ class ExportCommand(DatabaseCommand):
         for module, data in ids_to_export.items():
             ConverterBase.depends = []
             logger.info(f"Exporting '{module}' module to {Path(self.args.path / module)}")
-            for model in data.keys():
+            for model in data:
                 config = self.export_config[model]
                 if not config.get("export", True):
                     continue
@@ -148,7 +144,7 @@ class ExportCommand(DatabaseCommand):
     def __generate_init_files(self, module: str):
         """Generate the __init__.py files for the exported module."""
 
-        def generate_init_file(module: str, folder: str, imports: List[str] = None):
+        def generate_init_file(module: str, folder: str, imports: list[str] = None):
             if not imports:
                 return
 
@@ -168,12 +164,11 @@ class ExportCommand(DatabaseCommand):
 
     def __generate_manifest(self, module: str):
         """Generate the __manifest__.py file for the export module."""
-
         manifest_file = Path(self.args.path / module / "__manifest__.py")
 
         depends = [m for m in ConverterBase.depends if m not in ["base", module]] or ["base"]
 
-        manifest: dict[str, Union[str, List[str]]] = {
+        manifest: dict[str, str | list[str]] = {
             "name": f"{module} export",
             "version": str(self._database.version) + ".1.0.0",
             "depends": depends,
@@ -182,7 +177,7 @@ class ExportCommand(DatabaseCommand):
 
         for folder in ["data", "views", "security"]:
             for file in Path(self.args.path / module / folder).glob("*"):
-                if type(manifest["data"]) == list:
+                if type(manifest["data"]) is list:
                     manifest["data"].append(f"{folder}/{file.name}")
 
         with open(manifest_file, "w") as f:
@@ -190,7 +185,6 @@ class ExportCommand(DatabaseCommand):
 
     def __generate_mig_script(self, module: str, records: list[dict[str, Any]], config: dict[str, Any]):
         """https://github.com/odoo-ps/ps-tech-odev/blob/main/odev/templates/default/sh/scaffold_pre-10.jinja"""
-
         imports = {"odoo": ["SUPERUSER_ID", "api"], "odoo.upgrade": ["util"], "logging": [], "os": []}
 
         mig_script: str = self.converter_py.export_mig_script(imports, records, config)
@@ -214,7 +208,7 @@ class ExportCommand(DatabaseCommand):
         if not (config_file := self.args.export_config):
             config_file = Path(os.path.dirname(__file__)).parent / "export.yaml"
 
-        with open(config_file, "r") as f:
+        with open(config_file) as f:
             config = yaml.safe_load(f)
 
             if self.args.importable:
@@ -228,7 +222,7 @@ class ExportCommand(DatabaseCommand):
                     if model != export_model and model not in self.args.model.split(","):
                         config["sh"][model]["export"] = False
 
-                if export_model not in config["sh"].keys():
+                if export_model not in config["sh"]:
                     config["sh"][export_model] = {
                         "export": True,
                         "domain": self.args.domain or "[]",
@@ -258,13 +252,11 @@ class ExportCommand(DatabaseCommand):
         logger.info(f"{len(imd)} XML IDs records loaded")
 
         with progress.spinner("Loading XML IDs to export"):
-            ids_to_export: Dict[str, Dict[str, List[int]]] = defaultdict(
-                lambda: {k: [] for k in self.export_config.keys()}
-            )
+            ids_to_export: dict[str, dict[str, list[int]]] = defaultdict(lambda: {k: [] for k in self.export_config})
 
             for model, id_ in xml_ids.items():
                 for xml_id in filter(
-                    lambda x: x["module"] in self.args.modules and x["model"] in self.export_config.keys(), id_
+                    lambda x: x["module"] in self.args.modules and x["model"] in self.export_config, id_
                 ):
                     ids_to_export[xml_id["module"]][model].append(xml_id["res_id"])
 
@@ -290,7 +282,7 @@ class ExportCommand(DatabaseCommand):
                     for model_name, inc in config.get("includes", {}).items():
                         if model_name == "ir.model.fields.selection":
                             continue
-                        if model_name in models.keys() and inc.get("inverse_name", False):
+                        if model_name in models and inc.get("inverse_name", False):
                             ids_ = [
                                 r[inc["inverse_name"]]
                                 for r in self._database.models[model_name].search_read(
@@ -298,14 +290,14 @@ class ExportCommand(DatabaseCommand):
                                 )
                             ]
 
-                            ids_to_export[module][model] += set(ids_to_export[module][model] + ids_)
+                            ids_to_export[module][model] += set(models[model] + ids_)
 
         all_records_count = len(list(chain(*chain(*(m.values() for m in ids_to_export.values())))))
         logger.info(f"{all_records_count - ids_to_export_count} orphan records to export")
 
         return xml_ids, ids_to_export
 
-    def __get_records(self, module: str, model: str, ids: Optional[List[int]] = None, pk: str = "id") -> List[dict]:
+    def __get_records(self, module: str, model: str, ids: list[int] | None = None, pk: str = "id") -> list[dict]:
         """Get the records to export.
         :param module: The module to export
         :param model: The model to export
@@ -346,19 +338,18 @@ class ExportCommand(DatabaseCommand):
             for record in inc_data:
                 if (
                     inc_model == "ir.model.fields"
-                    or same_module_ids
-                    and record["id"] in same_module_ids
+                    or (same_module_ids and record["id"] in same_module_ids)
                     or not same_module_ids
                 ):
                     inc_data_dict[str(record[inc_config["inverse_name"]])].append(record)
 
             for record in data:
-                if str(record[inc_config["field"]]) in inc_data_dict.keys():
+                if str(record[inc_config["field"]]) in inc_data_dict:
                     record[inc_model] = inc_data_dict[str(record[inc_config["field"]])]
 
         return data
 
-    def export(self, module: str, model: str, ids: List[int] = None):
+    def export(self, module: str, model: str, ids: list[int] = None):
         """Export records.
         :param module: The module to export
         :param model: The model to export
