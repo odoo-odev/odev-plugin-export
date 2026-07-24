@@ -1,6 +1,6 @@
 import csv
+from collections.abc import Generator
 from io import StringIO
-from typing import Generator, Tuple
 
 from odev.common.connectors.rpc import FieldsGetMapping
 
@@ -18,7 +18,7 @@ class ConverterCsv(ConverterBase):
         model: str,
         module: str,
         config: dict,
-    ) -> Generator[Tuple[dict, str], None, None]:
+    ) -> Generator[tuple[dict, str], None, None]:
         output = StringIO()
         writer = csv.writer(output)
         writer.writerow(config["fields"])
@@ -28,7 +28,6 @@ class ConverterCsv(ConverterBase):
         for record in records:
             items = []
             for field in config["fields"]:
-
                 if relation := fields_get[field].get("relation"):
                     record_metadata = self.get_xml_ids(self.xml_ids, relation, [record[field]], module=module)
                     self._rename_fields(record_metadata[record[field]])

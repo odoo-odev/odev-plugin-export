@@ -1,13 +1,8 @@
+from collections.abc import Generator, Mapping, MutableMapping
 from io import StringIO
 from typing import (
     Any,
-    Generator,
-    List,
     Literal,
-    Mapping,
-    MutableMapping,
-    Tuple,
-    Union,
     cast,
 )
 
@@ -46,8 +41,8 @@ class ConverterXml(ConverterBase):
     def __convert_xml_many2one(
         self,
         node: etree._Element,
-        fields_get: Mapping[str, Mapping[str, Union[str, bool]]],
-        value: Union[Literal[False], int],
+        fields_get: Mapping[str, Mapping[str, str | bool]],
+        value: Literal[False] | int,
         module: str,
     ) -> None:
         """Serialize a many2one field to XML.
@@ -64,7 +59,7 @@ class ConverterXml(ConverterBase):
             node.set("ref", record_metadata[value]["xml_id"])
 
     def __convert_xml_x2many(
-        self, node: etree._Element, fields_get: FieldsGetMapping, value: List[int], module: str
+        self, node: etree._Element, fields_get: FieldsGetMapping, value: list[int], module: str
     ) -> None:
         """Serialize a x2many field to XML.
         :param node: The XML node to serialize the field to
@@ -114,7 +109,7 @@ class ConverterXml(ConverterBase):
         model: str,
         module: str,
         config: dict,
-    ) -> Generator[Tuple[dict, str], None, None]:
+    ) -> Generator[tuple[dict, str], None, None]:
         """Serialize records with the given ids to XML.
         :param ids: The ids of the records to serialize
         :param fields: The fields to serialize, all fields by default
@@ -129,7 +124,6 @@ class ConverterXml(ConverterBase):
         self._rename_fields(records, config)
 
         for record in records:
-
             if model in ["ir.model", "ir.model.fields"] and record.get("state") == "base":
                 continue
 
@@ -168,17 +162,17 @@ class ConverterXml(ConverterBase):
                         fields_get[field].get("related") or fields_get[field].get("computed")
                     )
 
-                if value == default_get.get(field, False) or fields_get[field]["type"] != "boolean" and not value:
+                if value == default_get.get(field, False) or (fields_get[field]["type"] != "boolean" and not value):
                     continue
 
                 field_node = etree.SubElement(record_node, "field", {"name": field})
 
                 match fields_get[field]["type"]:
                     case "many2one":
-                        value = cast(Union[int, Literal[False]], value)
+                        value = cast(int | Literal[False], value)
                         self.__convert_xml_many2one(field_node, fields_get, value, module)
                     case "one2many" | "many2many":
-                        value = cast(List[int], value)
+                        value = cast(list[int], value)
                         self.__convert_xml_x2many(field_node, fields_get, value, module)
                     case "boolean":
                         value = cast(bool, value)

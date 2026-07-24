@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Type, Union
 
 from odev.common.logging import logging
 
@@ -11,7 +10,7 @@ from .merge_xml import MergeXml
 
 logger = logging.getLogger(__name__)
 
-MergeType = Type[Union[MergePython, MergeXml, MergeCsv]]
+MergeType = type[MergePython | MergeXml | MergeCsv]
 
 
 class MergeFactory(MergeBase):

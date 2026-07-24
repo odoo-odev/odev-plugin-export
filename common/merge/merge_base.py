@@ -1,7 +1,7 @@
 import os
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from odev.common.logging import logging
 from odev.common.version import OdooVersion
@@ -13,13 +13,13 @@ logger = logging.getLogger(__name__)
 class MergeBase(ABC):
     version: OdooVersion = None
     prettify: bool = False
-    xml_ids: List[Dict] = None
+    xml_ids: list[dict] = None
     migrate_code: bool = True
 
     def __init__(
         self,
         version: OdooVersion = None,
-        xml_ids: List[Dict] = None,
+        xml_ids: list[dict] = None,
         path: Path = None,
         prettify: bool = False,
         migrate_code: bool = True,
@@ -45,7 +45,7 @@ class MergeBase(ABC):
         if Path(module_path / file_name).exists():
             code = self._merge(module_path, file_name, record, code)
 
-        return (Path(module_path / file_name), code if type(code) == str else "\n\n".join(code))
+        return (Path(module_path / file_name), code if type(code) is str else "\n\n".join(code))
 
     @abstractmethod
     def _merge(self, file_path: Path, file_name: str, record: dict, code: str):
@@ -56,8 +56,8 @@ class MergeBase(ABC):
         file_name = config.get("file_name_field", "name")
 
         for key in file_name.split("-"):
-            key = int(key) if type(record_cp) == list else key
-            if (type(record_cp) == list and record_cp[key]) or (type(record_cp) == dict and key in record_cp):
+            key = int(key) if type(record_cp) is list else key
+            if (type(record_cp) is list and record_cp[key]) or (type(record_cp) is dict and key in record_cp):
                 file_name = ""
                 if type(record_cp[key]) in [str, bool, int]:
                     if record_cp[key]:

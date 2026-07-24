@@ -1,30 +1,35 @@
 import keyword
 import re
-from typing import Dict, List, TypedDict
+from typing import TypedDict
 
 
 DEFAULT_MODULE_LIST = ["__export_module__", "studio_customization"]
 
-RecordMetaData = TypedDict(
-    "RecordMetaData", {"xml_id": str, "noupdate": bool, "model": str, "name": str, "module": str, "res_id": float}
-)
+
+class RecordMetaData(TypedDict):
+    xml_id: str
+    noupdate: bool
+    model: str
+    name: str
+    module: str
+    res_id: float
 
 
 def get_xml_ids(
-    xml_ids, model: str = "", ids: List = None, rename_field: bool = False, module: str = ""
-) -> Dict[int, RecordMetaData]:
+    xml_ids, model: str = "", ids: list = None, rename_field: bool = False, module: str = ""
+) -> dict[int, RecordMetaData]:
     model_clean = model.replace(".", "_")
 
-    default: Dict[int, RecordMetaData] = {
-        id: {
+    default: dict[int, RecordMetaData] = {
+        id_: {
             "model": model,
-            "name": f"{model_clean}_{str(id)}",
+            "name": f"{model_clean}_{id_!s}",
             "noupdate": False,
             "module": "__export_module__",
             "xml_id": "",
-            "res_id": id,
+            "res_id": id_,
         }
-        for id in ids
+        for id_ in ids
     }
 
     for xml_id in xml_ids[model]:
@@ -38,7 +43,7 @@ def get_xml_ids(
 
 
 def rename_field_base(field_name: str) -> str:
-    if type(field_name) == str:
+    if type(field_name) is str:
         field_name = re.sub(r"(?<=['\W_\s])x_(studio_)?|^x_(studio_)?", r"", field_name)
 
         if field_name in keyword.kwlist:

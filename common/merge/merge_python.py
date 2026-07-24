@@ -9,7 +9,7 @@ from .merge_base import MergeBase
 
 class MergePython(MergeBase):
     def _merge(self, file_path: Path, file_name: str, record: dict, code: str):
-        with open(Path(file_path / file_name), "r") as f:
+        with open(Path(file_path / file_name)) as f:
             text = f.read()
 
         # Find the class name, find the latest field and add the new fields + compute after it
