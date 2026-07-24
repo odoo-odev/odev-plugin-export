@@ -1,0 +1,722 @@
+{
+  "files": {
+    "./commands/export.py": [
+      {
+        "code": "reportAttributeAccessIssue",
+        "range": {
+          "endColumn": 81,
+          "lineCount": 1,
+          "startColumn": 77
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 72,
+          "lineCount": 1,
+          "startColumn": 60
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 72,
+          "lineCount": 1,
+          "startColumn": 60
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 32,
+          "lineCount": 1,
+          "startColumn": 20
+        }
+      },
+      {
+        "code": "reportIndexIssue",
+        "range": {
+          "endColumn": 43,
+          "lineCount": 1,
+          "startColumn": 25
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 82,
+          "lineCount": 1,
+          "startColumn": 78
+        }
+      },
+      {
+        "code": "reportGeneralTypeIssues",
+        "range": {
+          "endColumn": 115,
+          "lineCount": 1,
+          "startColumn": 97
+        }
+      },
+      {
+        "code": "reportAttributeAccessIssue",
+        "range": {
+          "endColumn": 57,
+          "lineCount": 1,
+          "startColumn": 52
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 61,
+          "lineCount": 1,
+          "startColumn": 20
+        }
+      },
+      {
+        "code": "reportAttributeAccessIssue",
+        "range": {
+          "endColumn": 61,
+          "lineCount": 1,
+          "startColumn": 56
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 69,
+          "lineCount": 1,
+          "startColumn": 37
+        }
+      },
+      {
+        "code": "reportOperatorIssue",
+        "range": {
+          "endColumn": 85,
+          "lineCount": 1,
+          "startColumn": 28
+        }
+      },
+      {
+        "code": "reportIndexIssue",
+        "range": {
+          "endColumn": 35,
+          "lineCount": 1,
+          "startColumn": 17
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 68,
+          "lineCount": 1,
+          "startColumn": 61
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 67,
+          "lineCount": 1,
+          "startColumn": 63
+        }
+      },
+      {
+        "code": "reportIndexIssue",
+        "range": {
+          "endColumn": 35,
+          "lineCount": 1,
+          "startColumn": 17
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 63,
+          "lineCount": 1,
+          "startColumn": 59
+        }
+      }
+    ],
+    "./common/ast_newline.py": [
+      {
+        "code": "reportMissingModuleSource",
+        "range": {
+          "endColumn": 14,
+          "lineCount": 1,
+          "startColumn": 5
+        }
+      }
+    ],
+    "./common/converters/converter_base.py": [
+      {
+        "code": "reportRedeclaration",
+        "range": {
+          "endColumn": 11,
+          "lineCount": 1,
+          "startColumn": 4
+        }
+      },
+      {
+        "code": "reportAssignmentType",
+        "range": {
+          "endColumn": 31,
+          "lineCount": 1,
+          "startColumn": 27
+        }
+      },
+      {
+        "code": "reportAssignmentType",
+        "range": {
+          "endColumn": 30,
+          "lineCount": 1,
+          "startColumn": 26
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 41,
+          "lineCount": 1,
+          "startColumn": 37
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 93,
+          "lineCount": 1,
+          "startColumn": 89
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 37,
+          "lineCount": 1,
+          "startColumn": 33
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 56,
+          "lineCount": 1,
+          "startColumn": 52
+        }
+      },
+      {
+        "code": "reportReturnType",
+        "range": {
+          "endColumn": 22,
+          "lineCount": 1,
+          "startColumn": 15
+        }
+      }
+    ],
+    "./common/converters/converter_csv.py": [
+      {
+        "code": "reportIncompatibleMethodOverride",
+        "range": {
+          "endColumn": 15,
+          "lineCount": 1,
+          "startColumn": 8
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 77,
+          "lineCount": 1,
+          "startColumn": 69
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 70,
+          "lineCount": 1,
+          "startColumn": 40
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 70,
+          "lineCount": 1,
+          "startColumn": 40
+        }
+      }
+    ],
+    "./common/converters/converter_factory.py": [
+      {
+        "code": "reportAssignmentType",
+        "range": {
+          "endColumn": 43,
+          "lineCount": 1,
+          "startColumn": 39
+        }
+      }
+    ],
+    "./common/converters/converter_python.py": [
+      {
+        "code": "reportPrivateImportUsage",
+        "range": {
+          "endColumn": 30,
+          "lineCount": 1,
+          "startColumn": 18
+        }
+      },
+      {
+        "code": "reportIncompatibleMethodOverride",
+        "range": {
+          "endColumn": 15,
+          "lineCount": 1,
+          "startColumn": 8
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 39,
+          "lineCount": 1,
+          "startColumn": 35
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 100,
+          "lineCount": 1,
+          "startColumn": 96
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 35,
+          "lineCount": 1,
+          "startColumn": 28
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 50,
+          "lineCount": 1,
+          "startColumn": 46
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 87,
+          "lineCount": 1,
+          "startColumn": 83
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 118,
+          "lineCount": 1,
+          "startColumn": 114
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 35,
+          "lineCount": 1,
+          "startColumn": 28
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 21,
+          "lineCount": 1,
+          "startColumn": 17
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 97,
+          "lineCount": 1,
+          "startColumn": 83
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 40,
+          "lineCount": 1,
+          "startColumn": 36
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 30,
+          "lineCount": 1,
+          "startColumn": 26
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 22,
+          "lineCount": 1,
+          "startColumn": 18
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 110,
+          "lineCount": 1,
+          "startColumn": 27
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 34,
+          "lineCount": 1,
+          "startColumn": 30
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 72,
+          "lineCount": 1,
+          "startColumn": 68
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 89,
+          "lineCount": 1,
+          "startColumn": 17
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 29,
+          "lineCount": 1,
+          "startColumn": 22
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 29,
+          "lineCount": 1,
+          "startColumn": 20
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 29,
+          "lineCount": 1,
+          "startColumn": 20
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 29,
+          "lineCount": 1,
+          "startColumn": 20
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 40,
+          "lineCount": 1,
+          "startColumn": 31
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 40,
+          "lineCount": 1,
+          "startColumn": 31
+        }
+      }
+    ],
+    "./common/converters/converter_xml.py": [
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 54,
+          "lineCount": 1,
+          "startColumn": 32
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 93,
+          "lineCount": 1,
+          "startColumn": 64
+        }
+      },
+      {
+        "code": "reportOptionalSubscript",
+        "range": {
+          "endColumn": 66,
+          "lineCount": 1,
+          "startColumn": 44
+        }
+      },
+      {
+        "code": "reportIncompatibleMethodOverride",
+        "range": {
+          "endColumn": 15,
+          "lineCount": 1,
+          "startColumn": 8
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 47,
+          "lineCount": 1,
+          "startColumn": 32
+        }
+      },
+      {
+        "code": "reportIndexIssue",
+        "range": {
+          "endColumn": 31,
+          "lineCount": 1,
+          "startColumn": 20
+        }
+      },
+      {
+        "code": "reportPossiblyUnboundVariable",
+        "range": {
+          "endColumn": 28,
+          "lineCount": 1,
+          "startColumn": 23
+        }
+      }
+    ],
+    "./common/merge/merge_base.py": [
+      {
+        "code": "reportRedeclaration",
+        "range": {
+          "endColumn": 11,
+          "lineCount": 1,
+          "startColumn": 4
+        }
+      },
+      {
+        "code": "reportAssignmentType",
+        "range": {
+          "endColumn": 31,
+          "lineCount": 1,
+          "startColumn": 27
+        }
+      },
+      {
+        "code": "reportAssignmentType",
+        "range": {
+          "endColumn": 30,
+          "lineCount": 1,
+          "startColumn": 26
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 35,
+          "lineCount": 1,
+          "startColumn": 31
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 34,
+          "lineCount": 1,
+          "startColumn": 30
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 25,
+          "lineCount": 1,
+          "startColumn": 21
+        }
+      }
+    ],
+    "./common/merge/merge_factory.py": [
+      {
+        "code": "reportAssignmentType",
+        "range": {
+          "endColumn": 35,
+          "lineCount": 1,
+          "startColumn": 31
+        }
+      }
+    ],
+    "./common/merge/merge_xml.py": [
+      {
+        "code": "reportGeneralTypeIssues",
+        "range": {
+          "endColumn": 94,
+          "lineCount": 1,
+          "startColumn": 51
+        }
+      },
+      {
+        "code": "reportGeneralTypeIssues",
+        "range": {
+          "endColumn": 94,
+          "lineCount": 1,
+          "startColumn": 51
+        }
+      },
+      {
+        "code": "reportAssignmentType",
+        "range": {
+          "endColumn": 48,
+          "lineCount": 1,
+          "startColumn": 21
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 67,
+          "lineCount": 1,
+          "startColumn": 42
+        }
+      },
+      {
+        "code": "reportOptionalMemberAccess",
+        "range": {
+          "endColumn": 101,
+          "lineCount": 1,
+          "startColumn": 98
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 49,
+          "lineCount": 1,
+          "startColumn": 24
+        }
+      },
+      {
+        "code": "reportOptionalMemberAccess",
+        "range": {
+          "endColumn": 86,
+          "lineCount": 1,
+          "startColumn": 83
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 53,
+          "lineCount": 1,
+          "startColumn": 49
+        }
+      },
+      {
+        "code": "reportOptionalMemberAccess",
+        "range": {
+          "endColumn": 58,
+          "lineCount": 1,
+          "startColumn": 49
+        }
+      },
+      {
+        "code": "reportOptionalMemberAccess",
+        "range": {
+          "endColumn": 62,
+          "lineCount": 1,
+          "startColumn": 59
+        }
+      },
+      {
+        "code": "reportOptionalMemberAccess",
+        "range": {
+          "endColumn": 45,
+          "lineCount": 1,
+          "startColumn": 39
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 57,
+          "lineCount": 1,
+          "startColumn": 46
+        }
+      },
+      {
+        "code": "reportOptionalMemberAccess",
+        "range": {
+          "endColumn": 33,
+          "lineCount": 1,
+          "startColumn": 29
+        }
+      },
+      {
+        "code": "reportOptionalMemberAccess",
+        "range": {
+          "endColumn": 65,
+          "lineCount": 1,
+          "startColumn": 59
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 77,
+          "lineCount": 1,
+          "startColumn": 66
+        }
+      },
+      {
+        "code": "reportOptionalMemberAccess",
+        "range": {
+          "endColumn": 31,
+          "lineCount": 1,
+          "startColumn": 25
+        }
+      },
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 38,
+          "lineCount": 1,
+          "startColumn": 32
+        }
+      }
+    ],
+    "./common/odoo.py": [
+      {
+        "code": "reportArgumentType",
+        "range": {
+          "endColumn": 46,
+          "lineCount": 1,
+          "startColumn": 42
+        }
+      }
+    ]
+  }
+}
